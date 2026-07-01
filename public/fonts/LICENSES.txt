@@ -1,0 +1,4 @@
+Fonts bundled locally:
+
+- General Sans, Cabinet Grotesk — Fontshare (ITF Free Font License, https://www.fontshare.com/licenses/itf-ffl)
+- IBM Plex Mono — SIL OFL 1.1, Copyright 2017 IBM Corp. with Reserved Font Name "Plex" (https://github.com/IBM/plex)
