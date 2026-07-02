@@ -13,7 +13,8 @@ function ago(min: number): string {
 }
 
 function StatusIcon({ run, active }: { run: RunInstance; active: boolean }) {
-  if (active && useStore.getState().playing) return <SpinnerIcon className="h-3.5 w-3.5 text-accent" />
+  const playing = useStore((s) => s.playing)
+  if (active && playing) return <SpinnerIcon className="h-3.5 w-3.5 text-accent" />
   switch (run.status) {
     case 'success':
       return <CheckIcon className="h-3.5 w-3.5 text-ok" />
@@ -36,6 +37,7 @@ function RunRow({ run }: { run: RunInstance }) {
     <button
       onClick={() => selectRun(run.id)}
       data-active={selected}
+      aria-current={selected ? 'true' : undefined}
       className="ctl group w-full rounded-[9px] border border-transparent px-2.5 py-2 text-left hover:bg-s2 data-[active=true]:border-line-strong data-[active=true]:bg-s2"
     >
       <div className="flex items-center gap-2">
@@ -82,8 +84,8 @@ export function ExecutionsPanel() {
       )}
       <aside
         className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed top-12 bottom-0 left-0 z-40 flex w-[264px] shrink-0 flex-col border-r border-line bg-s1 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0 lg:transition-none`}
+          sidebarOpen ? 'visible translate-x-0' : 'invisible -translate-x-full'
+        } fixed top-12 bottom-0 left-0 z-40 flex w-[264px] shrink-0 flex-col border-r border-line bg-s1 transition-[transform,visibility] duration-300 lg:visible lg:static lg:z-auto lg:translate-x-0 lg:transition-none`}
         aria-label="Executions"
       >
         {/* scenario switcher — mobile only (the top bar hides it there) */}
@@ -91,6 +93,7 @@ export function ExecutionsPanel() {
           {SCENARIOS.map((s) => (
             <button
               key={s.id}
+              aria-pressed={scenarioId === s.id}
               data-active={scenarioId === s.id}
               onClick={() => setScenarioAction(s.id)}
               className="ctl flex-1 truncate rounded-[7px] border border-line px-2 py-1.5 text-[10.5px] text-dim data-[active=true]:text-text"

@@ -96,8 +96,15 @@ const initialRuns = RUN_HISTORY.map((r) =>
   makeRun(r.id, r.scenarioId, r.seed, r.variant, r.decisions, r.agoMin),
 )
 
-const initialTheme: Theme =
-  (typeof localStorage !== 'undefined' && (localStorage.getItem('sb-theme') as Theme)) || 'dark'
+function readStoredTheme(): Theme {
+  try {
+    const t = localStorage.getItem('sb-theme')
+    return t === 'light' ? 'light' : 'dark'
+  } catch {
+    return 'dark'
+  }
+}
+const initialTheme: Theme = readStoredTheme()
 
 const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
 const forcedScenario = params?.get('scenario')
@@ -131,7 +138,11 @@ export const useStore = create<AppState>()((set, get) => ({
   liveSeq: 0,
 
   setTheme: (theme) => {
-    localStorage.setItem('sb-theme', theme)
+    try {
+      localStorage.setItem('sb-theme', theme)
+    } catch {
+      /* private mode — theme just won't persist */
+    }
     document.documentElement.dataset.theme = theme
     set({ theme })
   },

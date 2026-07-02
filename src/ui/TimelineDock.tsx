@@ -13,22 +13,30 @@ function fmtClock(ms: number): string {
   return `${String(m).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`
 }
 
-/** rAF-driven playhead line + clock, zero React re-renders */
+/** rAF-driven playhead line + clock + slider ARIA, zero React re-renders */
 function usePlayheadDom(
   lineRef: React.RefObject<HTMLDivElement | null>,
   clockRef: React.RefObject<HTMLSpanElement | null>,
+  sliderRef: React.RefObject<HTMLDivElement | null>,
 ) {
   useEffect(() => {
     let raf = 0
+    let lastAria = -1
     const loop = () => {
       const pct = playhead.duration > 0 ? (playhead.t / playhead.duration) * 100 : 0
       if (lineRef.current) lineRef.current.style.left = `${pct}%`
       if (clockRef.current) clockRef.current.textContent = fmtClock(playhead.t)
+      const rounded = Math.round(playhead.t / 100)
+      if (sliderRef.current && rounded !== lastAria) {
+        lastAria = rounded
+        sliderRef.current.setAttribute('aria-valuenow', String(Math.round(playhead.t)))
+        sliderRef.current.setAttribute('aria-valuetext', fmtClock(playhead.t))
+      }
       raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [lineRef, clockRef])
+  }, [lineRef, clockRef, sliderRef])
 }
 
 const KIND_COLOR: Record<string, string> = {
@@ -70,7 +78,8 @@ export function TimelineDock() {
   const lineRef = useRef<HTMLDivElement>(null)
   const clockRef = useRef<HTMLSpanElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
-  usePlayheadDom(lineRef, clockRef)
+  const sliderRef = useRef<HTMLDivElement>(null)
+  usePlayheadDom(lineRef, clockRef, sliderRef)
 
   const scrub = (e: ReactPointerEvent) => {
     const el = trackRef.current
@@ -110,6 +119,7 @@ export function TimelineDock() {
           {SPEEDS.map((s) => (
             <button
               key={s}
+              aria-pressed={speed === s}
               data-active={speed === s}
               onClick={() => setSpeed(s)}
               className="ctl mono-nums rounded-full px-1.5 py-0.5 text-[9.5px] text-dim data-[active=true]:bg-s3 data-[active=true]:text-text"
@@ -152,6 +162,7 @@ export function TimelineDock() {
         <div ref={trackRef} className="relative">
           {/* ruler / scrub strip */}
           <div
+            ref={sliderRef}
             className="relative h-5 cursor-ew-resize touch-none rounded-md bg-s2"
             onPointerDown={onPointerDown}
             onPointerMove={(e) => e.buttons === 1 && scrub(e)}
@@ -159,11 +170,12 @@ export function TimelineDock() {
             aria-label="Playback position"
             aria-valuemin={0}
             aria-valuemax={Math.round(run.duration)}
-            aria-valuenow={Math.round(useStore.getState().coarseT)}
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight') seek(playhead.t + run.duration * 0.02)
               if (e.key === 'ArrowLeft') seek(playhead.t - run.duration * 0.02)
+              if (e.key === 'Home') seek(0)
+              if (e.key === 'End') seek(run.duration)
             }}
           >
             {markers.map((m, i) => (

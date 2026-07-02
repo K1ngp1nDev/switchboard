@@ -106,7 +106,7 @@ export function deriveFlows(events: RunEvent[], t: number): EdgeFlow[] {
   const flows: EdgeFlow[] = []
   for (const e of events) {
     if (e.t > t) break
-    if (e.kind === 'edge.flow' && t < e.t + e.ms) {
+    if (e.kind === 'edge.flow' && e.ms > 0 && t < e.t + e.ms) {
       flows.push({ edge: e.edge, progress: (t - e.t) / e.ms })
     }
   }
@@ -310,16 +310,6 @@ export function deriveSpans(
     }
   }
   return spans
-}
-
-export function deriveOpenGate(events: RunEvent[], t: number) {
-  let open: Extract<RunEvent, { kind: 'gate.open' }> | null = null
-  for (const e of events) {
-    if (e.t > t) break
-    if (e.kind === 'gate.open') open = e
-    if (e.kind === 'gate.close' && open && e.gate === open.gate) open = null
-  }
-  return open
 }
 
 /** playhead times of "interesting" moments for scrubber markers / cmd-k jumps */

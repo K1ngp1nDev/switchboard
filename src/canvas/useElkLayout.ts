@@ -58,6 +58,8 @@ export function useElkLayout(scenario: Scenario): Record<string, NodePosition> |
       setPositions(cached)
       return
     }
+    // don't render the new scenario's nodes with the old scenario's map
+    setPositions(null)
     let cancelled = false
     layout(scenario).then((pos) => {
       if (!cancelled) setPositions(pos)

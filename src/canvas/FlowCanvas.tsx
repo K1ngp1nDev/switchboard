@@ -31,6 +31,12 @@ function useCameraDirector(activeNodeIds: string[], positions: ReturnType<typeof
 
   const target = activeNodeIds[activeNodeIds.length - 1] ?? null
 
+  // a restart passes through "no active nodes" — allow re-centering on the
+  // same first node during the next pass
+  useEffect(() => {
+    if (activeNodeIds.length === 0) lastCentered.current = null
+  }, [activeNodeIds.length])
+
   useEffect(() => {
     if (!follow || !playing || !target || !positions) return
     if (lastCentered.current === target) return
@@ -163,8 +169,6 @@ export function FlowCanvas() {
       edges={edges}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
-      fitView
-      fitViewOptions={{ padding: 0.15 }}
       minZoom={0.3}
       maxZoom={1.6}
       nodesDraggable={false}

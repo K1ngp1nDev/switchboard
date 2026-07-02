@@ -82,13 +82,45 @@ export function ApprovalModal() {
     )
   }, [open])
 
+  // focus management: initial focus into the dialog, Tab trapped inside,
+  // focus restored on close. Escape respects defaultPrevented so cmdk and
+  // Monaco can consume it first.
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+    const card = cardRef.current
+    const prev = document.activeElement as HTMLElement | null
+    card?.focus({ preventScroll: true })
+
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) setOpen(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const onTrapTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !card) return
+      const focusables = card.querySelectorAll<HTMLElement>(
+        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      const active = document.activeElement as HTMLElement
+      if (!card.contains(active)) {
+        e.preventDefault()
+        first.focus()
+      } else if (e.shiftKey && active === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onEscape) // bubble: after cmdk/Monaco
+    window.addEventListener('keydown', onTrapTab, true)
+    return () => {
+      window.removeEventListener('keydown', onEscape)
+      window.removeEventListener('keydown', onTrapTab, true)
+      if (prev?.isConnected) prev.focus({ preventScroll: true })
+    }
   }, [open, setOpen])
 
   if (!open || !gate) return null
@@ -135,7 +167,8 @@ export function ApprovalModal() {
         role="dialog"
         aria-modal="true"
         aria-label={gate.title}
-        className="floating relative flex max-h-[86vh] w-full max-w-[620px] flex-col rounded-2xl"
+        tabIndex={-1}
+        className="floating relative flex max-h-[86vh] w-full max-w-[620px] flex-col rounded-2xl outline-none"
       >
         <header className="flex items-start gap-3 border-b border-line px-5 pt-4 pb-3.5">
           <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-accent-dim text-accent">
@@ -154,6 +187,7 @@ export function ApprovalModal() {
           {(['diff', 'edit'] as const).map((t) => (
             <button
               key={t}
+              aria-pressed={tab === t}
               data-active={tab === t}
               onClick={() => setTab(t)}
               className="ctl rounded-[7px] border border-transparent px-2.5 py-1 text-[10.5px] font-medium text-dim data-[active=true]:border-line-strong data-[active=true]:bg-s3 data-[active=true]:text-text"

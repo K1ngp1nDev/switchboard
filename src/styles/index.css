@@ -342,6 +342,15 @@ input:focus-visible,
   border: 1px solid var(--line);
 }
 
+/* trace/timeline hover → canvas node highlight */
+.node-hovered .agent-node {
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow:
+    var(--card-highlight),
+    0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+    0 0 22px -6px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
 .edge-packet {
   fill: var(--accent);
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent) 70%, transparent));

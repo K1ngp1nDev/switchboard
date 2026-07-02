@@ -5,6 +5,8 @@ import { selectedRun, useStore } from '../store/useStore'
 import { SCENARIOS } from '../scenarios'
 import { ListIcon, MoonIcon, PlayIcon, SunIcon } from './icons'
 
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform)
+
 function StatusChip() {
   const run = useStore(selectedRun)
   const coarseT = useStore((s) => s.coarseT)
@@ -113,6 +115,7 @@ export function TopBar() {
         {SCENARIOS.map((s) => (
           <button
             key={s.id}
+            aria-pressed={scenarioId === s.id}
             data-active={scenarioId === s.id}
             onClick={() => setScenario(s.id)}
             className="ctl truncate rounded-full border border-transparent px-2.5 py-1 text-[11px] text-dim data-[active=true]:text-text"
@@ -141,7 +144,7 @@ export function TopBar() {
         className="ctl hidden items-center gap-1.5 rounded-[7px] border border-line px-2 py-1.5 text-[10px] text-dim md:flex"
         aria-label="Open command palette"
       >
-        <span className="kbd">⌘K</span>
+        <span className="kbd">{IS_MAC ? '⌘K' : 'Ctrl K'}</span>
       </button>
 
       <button

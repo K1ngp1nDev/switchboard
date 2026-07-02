@@ -11,10 +11,21 @@
     <title>SWITCHBOARD — AI agent control room</title>
     <link rel="preload" href="/fonts/CabinetGrotesk-800.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/GeneralSans-500.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // theme before first paint — no dark flash for persisted-light users
+      try {
+        var q = new URLSearchParams(location.search).get('theme')
+        var t = q || localStorage.getItem('sb-theme')
+        if (t === 'light') document.documentElement.dataset.theme = 'light'
+      } catch (e) {}
+    </script>
     <style>
       /* Critical shell: dark first paint, DOM-text LCP before any JS. */
       :root { color-scheme: dark; }
       html, body { margin: 0; background: #08090a; color: #e9eaee; }
+      html[data-theme='light'], html[data-theme='light'] body { background: #f4f4f1; color: #17181d; }
+      html[data-theme='light'] #boot p { color: #5c6068; }
+      html[data-theme='light'] #boot .bar { background: rgba(18, 20, 24, 0.09); }
       #boot {
         position: fixed; inset: 0; display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 14px;

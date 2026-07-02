@@ -44,12 +44,16 @@ function useHotkeys() {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) return
+      // focused controls keep their native Space/Enter behavior
+      if (el.closest?.('button, [role="slider"]')) return
+      const s = useStore.getState()
+      if (s.approvalOpen || s.cmdkOpen) return
       if (e.key === ' ') {
         e.preventDefault()
-        useStore.getState().playPause()
+        s.playPause()
       }
       if (e.key === 'r' && !e.metaKey && !e.ctrlKey) {
-        useStore.getState().startRun()
+        s.startRun()
       }
     }
     window.addEventListener('keydown', onKey)

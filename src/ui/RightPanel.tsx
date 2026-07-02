@@ -172,6 +172,7 @@ export function RightPanel() {
         {(['trace', 'inspector'] as const).map((tab) => (
           <button
             key={tab}
+            aria-pressed={rightTab === tab}
             data-active={rightTab === tab}
             onClick={() => setRightTab(tab)}
             className="ctl rounded-[7px] px-2.5 py-1 text-[10.5px] font-medium text-dim capitalize data-[active=true]:bg-s3 data-[active=true]:text-text"

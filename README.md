@@ -60,7 +60,7 @@ function over `(events, playheadMs)`.
 ```
                         ┌────────────────────────────────────────┐
  scenario script  ──►   │  RunEvent[]  (deterministic, seeded)   │
- (seed, variant,        │  run.start · node.start · llm.chunk    │
+ (seed, variant,        │  run.start · node.start/end · llm.chunk│
   decisions)            │  tool.call/result · node.retry         │
                         │  gate.open/close · edge.flow · run.end │
                         └───────────────┬────────────────────────┘
@@ -75,8 +75,8 @@ function over `(events, playheadMs)`.
 
 - **Simulation**: scenario scripts call a builder API (`llm()`, `tool()`, `router()`,
   `approval()`, `parallel()`…) that emits events with realistic timing — LLM nodes stream
-  word-group chunks at 38–68 tok/s after a first-token delay, tools take 200–700 ms,
-  retries back off exponentially. All randomness comes from one seeded mulberry32 PRNG:
+  word-group chunks at 38–68 tok/s after a first-token delay, tools take roughly
+  150–800 ms with jitter, retries back off exponentially. All randomness comes from one seeded mulberry32 PRNG:
   **same (scenario, seed, variant, decisions) ⇒ byte-identical log**. The QA suite
   asserts this on every run in history.
 - **Approval gates** work by re-simulation: an unanswered `approval()` stops the script
@@ -148,6 +148,8 @@ All screenshots ≤ 4000×4000.
 Static SPA (`dist/`) — any static host. For `switchboard.k1ngp1n.com`: build command
 `npm run build`, output `dist`, no rewrites needed (single route). Long-cache
 `assets/**` and `fonts/**` (hashed / immutable), no-cache `index.html`. Fully
-self-contained — `default-src 'self'; style-src 'self' 'unsafe-inline'; worker-src
-'self' blob:` CSP works (Monaco spawns workers via blob in dev; the production build
-uses same-origin worker files).
+self-contained — a strict CSP works:
+`default-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'`
+(the boot shell and Monaco inject inline styles, hence `'unsafe-inline'`; the
+production build spawns Monaco workers from same-origin asset files — verified in
+`dist/`, no `blob:` needed).
